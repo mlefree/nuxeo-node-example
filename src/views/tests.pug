@@ -1,0 +1,24 @@
+extends layout
+
+block content
+
+    div.jumbotron.jumbotron-fluid
+        div.container
+            h1.display-4= title
+            //p.lead Welcome to #{title}
+            hr.my-4
+            //p It uses utility classes for typography and spacing to space content out within the larger container.
+            a.btn.btn-primary.btn-lg(href="javascript:location.reload()", role="button") Again
+
+
+    div.container
+        div.row
+            div(class="col-sm")
+                h2 /read
+                iframe(src='/tests/read')
+            div(class="col-sm")
+                h2 /update
+                iframe(src='./tests/update')
+            div(class="col-sm")
+                h2 /create
+                iframe(src='./tests/create')

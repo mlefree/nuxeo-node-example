@@ -1,0 +1,14 @@
+extends layout
+
+block content
+
+    div.jumbotron.jumbotron-fluid.bg-danger.text-white
+        div.container
+            h1.display-4 #{message}
+            p.lead Error code: #{error.status}
+
+    div.container
+        div.row
+            div.col-sm
+
+                pre #{error.stack}
