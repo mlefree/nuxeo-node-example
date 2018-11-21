@@ -2,23 +2,149 @@ extends layout
 
 block content
 
+    script.
+        $(document).ready(function () {
+            var tests = $('#tests'); // this.id;
+            var nbUsers = $('#nbUsers');
+            var resultFound = false;
+            var fetchNow = function () {
+                fetch('/api/users')
+                    .then(function (response) {
+                        return response.json();
+                    })
+                    .then(function (data) {
+                        //console.log(data);
+                        nbUsers.html(data);
+                        if (false) {
+                            resultFound = true;
+                        }
+                        else {
+                            setTimeout(function () {
+                                fetchNow();
+                            }, 200);
+                        }
+                    });
+            }
+            fetchNow();
+
+            $('#basic').click(function (e) {
+                e.preventDefault();
+                tests.empty();
+                var read1 = '/read/40',
+                    read2 = '/read/30',
+                    read3 = '/read/20';
+                var upd1 = '/update/40',
+                    upd2 = '/update/30',
+                    upd3 = '/update/20';
+                var create1 = '/create/40',
+                    create2 = '/create/30',
+                    create3 = '/create/20';
+                setTimeout(function () {
+                    tests.append("<div class='col-md-3'><h4>" + read1 + "</h4></div> <div class='col-md-9'><iframe src='/tests" + read1 + "' height='40px' width='100%'></iframe></div>");
+                    tests.append("<div class='col-md-3'><h4>" + upd1 + "</h4></div> <div class='col-md-9'><iframe src='/tests" + read1 + "' height='40px' width='100%'></iframe></div>");
+                    tests.append("<div class='col-md-3'><h4>" + create1 + "</h4></div> <div class='col-md-9'><iframe src='/tests" + read1 + "' height='40px' width='100%'></iframe></div>");
+                }, 10);
+                // setTimeout(function () {
+                //     tests.append("<div class='col-md-3'><h4>" + read2 + "</h4></div> <div class='col-md-9'><iframe src='/tests" + read2 + "' height='40px' width='100%'></iframe></div>");
+                //     tests.append("<div class='col-md-3'><h4>" + upd2 + "</h4></div> <div class='col-md-9'><iframe src='/tests" + read1 + "' height='40px' width='100%'></iframe></div>");
+                //     tests.append("<div class='col-md-3'><h4>" + create2 + "</h4></div> <div class='col-md-9'><iframe src='/tests" + read1 + "' height='40px' width='100%'></iframe></div>");
+                // }, 20000);
+                // setTimeout(function () {
+                //     tests.append("<div class='col-md-3'><h4>" + read3 + "</h4></div> <div class='col-md-9'><iframe src='/tests" + read3 + "' height='40px' width='100%'></iframe></div>");
+                //     tests.append("<div class='col-md-3'><h4>" + upd3 + "</h4></div> <div class='col-md-9'><iframe src='/tests" + read1 + "' height='40px' width='100%'></iframe></div>");
+                //     tests.append("<div class='col-md-3'><h4>" + create3 + "</h4></div> <div class='col-md-9'><iframe src='/tests" + read1 + "' height='40px' width='100%'></iframe></div>");
+                // }, 40000);
+            });
+            $('#medium').click(function (e) {
+                e.preventDefault();
+                tests.empty();
+                var read1 = '/read/30',
+                    read2 = '/read/20',
+                    read3 = '/read/10';
+                var upd1 = '/update/30',
+                    upd2 = '/update/20',
+                    upd3 = '/update/10';
+                var create1 = '/create/30',
+                    create2 = '/create/20',
+                    create3 = '/create/10';
+                setTimeout(function () {
+                    tests.append("<div class='col-md-3'><h4>" + read1 + "</h4></div> <div class='col-md-9'><iframe src='/tests" + read1 + "' height='40px' width='100%'></iframe></div>");
+                    tests.append("<div class='col-md-3'><h4>" + upd1 + "</h4></div> <div class='col-md-9'><iframe src='/tests" + read1 + "' height='40px' width='100%'></iframe></div>");
+                    tests.append("<div class='col-md-3'><h4>" + create1 + "</h4></div> <div class='col-md-9'><iframe src='/tests" + read1 + "' height='40px' width='100%'></iframe></div>");
+                }, 10);
+                setTimeout(function () {
+                    tests.append("<div class='col-md-3'><h4>" + read2 + "</h4></div> <div class='col-md-9'><iframe src='/tests" + read2 + "' height='40px' width='100%'></iframe></div>");
+                    tests.append("<div class='col-md-3'><h4>" + upd2 + "</h4></div> <div class='col-md-9'><iframe src='/tests" + read1 + "' height='40px' width='100%'></iframe></div>");
+                    tests.append("<div class='col-md-3'><h4>" + create2 + "</h4></div> <div class='col-md-9'><iframe src='/tests" + read1 + "' height='40px' width='100%'></iframe></div>");
+                }, 20000);
+                setTimeout(function () {
+                    tests.append("<div class='col-md-3'><h4>" + read3 + "</h4></div> <div class='col-md-9'><iframe src='/tests" + read3 + "' height='40px' width='100%'></iframe></div>");
+                    tests.append("<div class='col-md-3'><h4>" + upd3 + "</h4></div> <div class='col-md-9'><iframe src='/tests" + read1 + "' height='40px' width='100%'></iframe></div>");
+                    tests.append("<div class='col-md-3'><h4>" + create3 + "</h4></div> <div class='col-md-9'><iframe src='/tests" + read1 + "' height='40px' width='100%'></iframe></div>");
+                }, 40000);
+            });
+
+            function launchUnitTest(testId, timeout) {
+                setTimeout(function () {
+                    tests.append("<div class='col-md-3'><h4>" + testId + "</h4></div> <div class='col-md-9'><iframe src='/tests" + testId + "' height='40px' width='100%'></iframe></div>");
+                }, timeout);
+            }
+
+            $('#intensive').click(function (e) {
+                e.preventDefault();
+                tests.empty();
+                //debugger;
+                var testIds = [];
+                for (var i = 10; i < 14; i++) {
+                    testIds.push('/read/' + i);
+                    testIds.push('/update/' + i);
+                    testIds.push('/create/' + i);
+                }
+                var step = Math.round((60000 / testIds.length) / 3);
+                for (var j = 0; j < testIds.length; j++) {
+                    var testId = testIds[j];
+                    launchUnitTest(testId, j * step);
+                }
+            });
+        });
+
     div.jumbotron.jumbotron-fluid
         div.container
             h1.display-4= title
             //p.lead Welcome to #{title}
             hr.my-4
             //p It uses utility classes for typography and spacing to space content out within the larger container.
-            a.btn.btn-primary.btn-lg(href="javascript:location.reload()", role="button") Again
+            //a.btn.btn-primary.btn-lg(href="javascript:location.reload()", role="button") Again
+
+            div.btn-toolbar
+                div.btn-group.mr-2.btn-group-toggle
+                    label#basic.btn.btn-secondary
+                        input(type="radio")
+                        | Basic
+                    label#medium.btn.btn-secondary
+                        input(type="radio")
+                        | Medium
+                    label#intensive.btn.btn-secondary
+                        input(type="radio")
+                        | Intensive
+
+                //div.badge
+                    h2#nbUsers 0
+
+                div.btn-group.mr-2
+                    button.btn.btn-outline-light.active(readonly) Concurrent requests:
+                    button#nbUsers.btn.btn-outline-light.active 0
 
 
     div.container
-        div.row
-            div(class="col-sm")
-                h2 /read
-                iframe(src='/tests/read')
-            div(class="col-sm")
+        div.row#tests
+            //div.col-md-3
+                h4 /read/40
+            //div.col-md-9
+                iframe(src='/tests/read/40')
+            //div(class="col-sm")
                 h2 /update
-                iframe(src='./tests/update')
-            div(class="col-sm")
+                iframe#update(src='./tests/update')
+            //div(class="col-sm")
                 h2 /create
-                iframe(src='./tests/create')
+                iframe#create(src='./tests/create')

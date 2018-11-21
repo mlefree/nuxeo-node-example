@@ -1,4 +1,4 @@
-# nuxeo-node
+# nuxeo-node-example
 
 Some tools to easily start and set up demo instances using docker
 
