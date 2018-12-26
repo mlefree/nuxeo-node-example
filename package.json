@@ -5,6 +5,9 @@
   "scripts": {
     "start": "node ./src/bin/www"
   },
+  "bin": {
+    "nuxeo-node-example": "./src/bin/www"
+  },
   "dependencies": {
     "cookie-parser": "~1.4.3",
     "debug": "~2.6.9",
