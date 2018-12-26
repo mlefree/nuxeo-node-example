@@ -1,6 +1,6 @@
 # nuxeo-node-example
 
-Some tools to easily start and set up demo instances using docker
+Some tools to easily start and test Nuxeo instance
 
 based on https://developer.mozilla.org/en-US/docs/Learn/Server-side/Express_Nodejs/skeleton_website
 

@@ -4,8 +4,6 @@
 .settings
 .idea
 *.stt
-bin
-pojo-bin
 *~
 *~bak
 *-bak

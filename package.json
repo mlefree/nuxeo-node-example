@@ -1,12 +1,11 @@
 {
   "name": "nuxeo-node-example",
   "version": "0.0.0",
-  "private": true,
+  "private": false,
   "scripts": {
     "start": "node ./src/bin/www"
   },
   "dependencies": {
-    "@polymer/iron-icon": "^3.0.1",
     "cookie-parser": "~1.4.3",
     "debug": "~2.6.9",
     "dotenv": "^6.2.0",
