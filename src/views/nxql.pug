@@ -1,0 +1,29 @@
+extends layout
+
+block content
+
+
+    div.jumbotron.jumbotron-fluid
+        div.container
+            h1.display-4= title
+            form#nxql-query(method='GET' action='/nxql')
+                div.form-group
+                    label(for='nxql') nxql:
+                    input#nxql.form-control(type='text', value= nxql, name='nxql')
+
+                hr.my-4
+                //p It uses utility classes for typography and spacing to space content out within the larger container.
+                //a.btn.btn-primary.btn-lg(href="javascript:location.reload()", role="button") Again
+
+                div.btn-toolbar
+                    div.btn-group.mr-2.btn-group-toggle
+                        input.btn(type="submit")
+                        | Launch
+
+            textarea= error
+
+
+    div.container
+        div.row
+            div.col-md-3
+                p#queryResult= result

@@ -1,0 +1,25 @@
+
+.welcome {
+    color: white;
+}
+
+img.slide-200 {
+    width: 200px;
+    height: 200px;
+}
+img.slide-300 {
+    width: 300px;
+    height: 300px;
+}
+img.slide-400 {
+    width: 400px;
+    height: 400px;
+}
+img.slide-500 {
+    width: 500px;
+    height: 500px;
+}
+img.slide-600 {
+    width: 600px;
+    height: 600px;
+}

@@ -30,6 +30,7 @@ bower_components
 .publish/
 target
 index-local.html
+.env
 
 # Folders created using Docker volumes.
 nuxeo_binaries

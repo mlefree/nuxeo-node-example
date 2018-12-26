@@ -19,50 +19,57 @@ module.exports = function (inTestMode) {
 
     nuxeoModule.web.testReadQuery = "SELECT * FROM Document"
         + " WHERE ecm:primaryType = 'File'"
-        + " AND ecm:path STARTSWITH '/default-domain/workspaces/'"
+        + " AND ecm:path STARTSWITH '/default-domain/workspaces/test'"
     //+ " AND content/data IS NOT NULL"
     //+ " AND dc:title <> content/name"
     //+ " AND ecm:isProxy = 0 AND ecm:isCheckedInVersion = 0"
     //+ " AND ecm:currentLifeCycleState != 'deleted'"
     ;
 
-    nuxeoModule.web.testSampleQuery = "SELECT * FROM Document"
-        + " WHERE ecm:primaryType = 'File'"
-        + " AND ecm:path STARTSWITH '/default-domain/workspaces/'"
-    //+ " AND content/data IS NOT NULL"
-    //+ " AND dc:title <> content/name"
-    //+ " AND ecm:isProxy = 0 AND ecm:isCheckedInVersion = 0"
-    //+ " AND ecm:currentLifeCycleState != 'deleted'"
+    nuxeoModule.web.testSampleQuery = "SELECT ecm:uuid, ecm:fulltextScore FROM Document WHERE ecm:fulltext = '*'"
     ;
 
     nuxeoModule.internal.init = () => {
 
-        if (nuxeoModule.internal.nuxeoClient) return;
+        if (nuxeoModule.internal.nuxeoClient) {
+
+            return;
+        }
 
         nuxeoModule.internal.nuxeoClient = new Nuxeo({
-            baseURL: 'http://localhost:8280/nuxeo/',
+            baseURL: process.env.NUXEO_URL,
             auth: {
                 method: 'basic',
-                username: 'Administrator',
-                password: 'Administrator'
+                username: process.env.NUXEO_LOGIN,
+                password: process.env.NUXEO_PASSWORD
             }
         });
 
+    };
+
+    nuxeoModule.internal.$getNameWithStatus = () => {
+
+        nuxeoModule.internal.init();
+
+        return nuxeoModule.internal.nuxeoClient.connect()
+            .then(function (client) {
+                // client.connected === true
+                // client === nuxeo
+                console.log('Connected OK!', client);
+                return Promise.resolve(''+ process.env.NUXEO_LOGIN+ ' - OK '+ client.serverVersion);
+            })
+            .catch(function (error) {
+                // wrong credentials / auth method / ...
+                return Promise.resolve(''+ process.env.NUXEO_LOGIN+ ' - KO : '+ error);
+            });
     };
 
     nuxeoModule.internal.$readAllDocs = () => {
 
         nuxeoModule.internal.init();
 
-        let query = `SELECT * FROM Document 
-              WHERE ecm:primaryType = 'File'
-              AND ecm:path STARTSWITH '/default-domain/workspaces/'`
-            //        AND content/data IS NOT NULL
-            //+ " AND dc:title <> content/name"
-            //+ " AND ecm:isProxy = 0 AND ecm:isCheckedInVersion = 0"
-            //+ " AND ecm:currentLifeCycleState != 'deleted'"
-        ;
-        //console.log(query);
+        let query = nuxeoModule.web.testReadQuery;
+        console.log(query);
 
         return nuxeoModule.internal.nuxeoClient
             .repository()
@@ -93,6 +100,33 @@ module.exports = function (inTestMode) {
                 doc.requestTimeSpentInMs = new Date() - beforeRequest;
                 console.error(err);
                 return Promise.resolve(doc);
+            });
+    };
+
+
+    nuxeoModule.internal.$readNXQL = (nxql) => {
+
+        nuxeoModule.internal.init();
+
+        const beforeRequest = new Date();
+
+        let query = nxql;
+        // console.log(query);
+
+        return nuxeoModule.internal.nuxeoClient
+            .repository()
+            .schemas(['dublincore', 'file'])
+            // TODO MLE .queryAndFetch()
+            .query({query: query, currentPageIndex : 0})
+            .then(doc => {
+                doc.requestTimeSpentInMs = new Date() - beforeRequest;
+                return Promise.resolve(doc);
+            })
+            .catch(err => {
+                const doc = {};
+                doc.requestTimeSpentInMs = new Date() - beforeRequest;
+                // console.error(err);
+                return Promise.reject(err);
             });
     };
 
@@ -142,7 +176,7 @@ module.exports = function (inTestMode) {
 
         return nuxeoModule.internal.nuxeoClient
             .repository()
-            .create('/', fileDocument)
+            .create('/test/', fileDocument)
             .then(doc => {
                 // console.log(doc);
                 return nuxeoModule.internal.nuxeoClient
@@ -173,12 +207,19 @@ module.exports = function (inTestMode) {
 
         nuxeoModule.internal.init();
 
-        let branding = {
-            logo: './images/logo.png',
-            bg: 'https://www.courts.com.sg/media/catalog/product/cache/image/4e8ff541545308adfd94f8ed2a2008b9/i/p/ip119172_00.jpg'
-        };
+        let branding = require('./home.json').brand;
 
         return Promise.resolve(branding);
+    };
+
+
+    nuxeoModule.internal.$getNews = () => {
+
+        nuxeoModule.internal.init();
+
+        let news = require('./home.json').news;
+
+        return Promise.resolve(news);
     };
 
     nuxeoModule.internal.$getPrefered = () => {
@@ -189,15 +230,37 @@ module.exports = function (inTestMode) {
             {
                 uid: 344,
                 name: 'test 01',
-                thumb: 'https://www.courts.com.sg/media/catalog/product/cache/image/4e8ff541545308adfd94f8ed2a2008b9/i/p/ip119172_00.jpg'
+                img: 'https://www.courts.com.sg/media/catalog/product/cache/image/4e8ff541545308adfd94f8ed2a2008b9/i/p/ip119172_00.jpg'
             },
             {
                 uid: 345,
                 name: 'test 01',
-                thumb: 'https://www.courts.com.sg/media/catalog/product/cache/image/4e8ff541545308adfd94f8ed2a2008b9/i/p/ip119172_00.jpg'
+                img: 'https://www.courts.com.sg/media/catalog/product/cache/image/4e8ff541545308adfd94f8ed2a2008b9/i/p/ip119172_00.jpg'
             }];
 
-        return Promise.resolve(preferedDocs);
+        return nuxeoModule.internal.$readNXQL("select * from DOCUMENT where ecm:fulltext = 'test'")
+            .then((docs) => {
+
+                if (docs && docs.entries && docs.entries.length > 0) {
+                    preferedDocs = [];
+                    docs.entries.forEach(doc => {
+
+                        let path = doc.properties['file:content'] ? doc.properties['file:content'].data : 'na';
+                        path = path.split('file:content')[0] + '@rendition/thumbnail';
+                        path = path.replace('nuxeo/nxfile/default','nuxeo/api/v1/repo/default/id');
+
+                        preferedDocs.push({img : path});
+                    });
+                }
+
+                return preferedDocs;
+            })
+            .catch(err => {
+               return preferedDocs;
+            });
+
+
+        //return Promise.resolve(preferedDocs);
     };
 
     nuxeoModule.api.getBranding = (req, res) => {
@@ -311,7 +374,8 @@ module.exports = function (inTestMode) {
         summarizeAsObservable
             .subscribe(max => {
                 console.log('Read - We did a max ms of', arrAvg(values), max);
-                res.render('test', {title: `Read ${countAllDocs} docs with ${countRequest} requests in ${arrAvg(values)} / ${max} ms response time`});
+                //res.render('test', {title: `Read ${countAllDocs} docs with ${countRequest} requests in ${arrAvg(values)} / ${max} ms response time`});
+                res.render('test', {title: `Read: ${countRequest} requests in ${arrAvg(values)} ms average response time`});
 
             });
 
@@ -379,7 +443,8 @@ module.exports = function (inTestMode) {
         summarizeAsObservable
             .subscribe(max => {
                 console.log('Update - We did a max ms of', max);
-                res.render('test', {title: `Update ${countAllDocs} docs with ${countRequest} requests in ${arrAvg(values)} / ${max} ms response time`});
+                // res.render('test', {title: `Update ${countAllDocs} docs with ${countRequest} requests in ${arrAvg(values)} / ${max} ms response time`});
+                res.render('test', {title: `Update: ${countRequest} requests in ${arrAvg(values)} ms average response time`});
             });
 
     };
@@ -430,7 +495,33 @@ module.exports = function (inTestMode) {
         summarizeAsObservable
             .subscribe(max => {
                 console.log('Update - We did a max ms of', max);
-                res.render('test', {title: `Create ${countRequest} docs in ${arrAvg(values)} / ${max} ms response time`});
+                //res.render('test', {title: `Create ${countRequest} docs in ${arrAvg(values)} / ${max} ms response time`});
+                res.render('test', {title: `Create: ${countRequest} requests in ${arrAvg(values)} ms average response time`});
+            });
+
+    };
+
+
+    nuxeoModule.web.testNXQL = (req, res) => {
+
+        let nxql = req.query.nxql;
+        if (!nxql) {
+            return res.render('nxql', {title: `No NXQL.`, nxql: nxql});
+        }
+
+        nuxeoModule.internal.$readNXQL(nxql)
+            .then(vals => {
+                let max = 0;
+                let values = [];
+                vals.entries.forEach(val => {
+                    values.push(val);
+                    max++;
+                });
+                res.render('nxql', {title: `NXQL returns ${values.length} entity(ies)`, nxql: nxql, result: JSON.stringify(values)});
+            })
+            .catch(error => {
+                console.log('#Error:', error);
+                res.render('nxql', {title: `NXQL failed`, nxql: nxql, error: JSON.stringify(error)});
             });
 
     };

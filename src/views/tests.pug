@@ -14,7 +14,7 @@ block content
                     })
                     .then(function (data) {
                         //console.log(data);
-                        nbUsers.html(data);
+                        nbUsers.text(''+data+'+');
                         if (false) {
                             resultFound = true;
                         }
@@ -132,7 +132,7 @@ block content
                     h2#nbUsers 0
 
                 div.btn-group.mr-2
-                    button.btn.btn-outline-light.active(readonly) Concurrent requests:
+                    button.btn.btn-outline-light.active Concurrent requests:
                     button#nbUsers.btn.btn-outline-light.active 0
 
 

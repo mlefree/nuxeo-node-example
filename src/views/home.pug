@@ -2,75 +2,85 @@ extends layout
 
 block content
 
-    div.jumbotron.jumbotron-fluid.bg-primary(style='background:url("'+ branding.bg+'") no-repeat center center fixed; background-size: cover;')
+    div.jumbotron.jumbotron-fluid.bg-primary(style='background:url("' + branding.bg + '") no-repeat center center fixed; background-size: cover;')
         div.container
-            h1.display-4= title
-            //p.lead Welcome to #{title}
-            //hr.my-4
-            //p It uses utility classes for typography and spacing to space content out within the larger container.
-            //a.btn.btn-primary.btn-lg(href="#",role="button") Learn more
+            h1.welcome
+                | Welcome in your Nuxeo Node Portal
 
 
     div.container
         div.row
             div(class="col-sm")
                 p News
-                <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
-                <ol class="carousel-indicators">
-                <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
-                <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
-                <li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
-                </ol>
-                <div class="carousel-inner">
-                <div class="carousel-item active">
-                <img class="d-block w-100" src="https://images.lesechos.fr/archives/2016/LesEchos/22324/ECH22324075_1.jpg" alt="First slide">
-                </div>
-                <div class="carousel-item">
-                <img class="d-block w-100" src="https://www.courts.com.sg/media/catalog/product/cache/image/4e8ff541545308adfd94f8ed2a2008b9/i/p/ip119172_00.jpg" alt="Second slide">
-                </div>
-                <div class="carousel-item">
-                <img class="d-block w-100" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR-j5h78ULl6WVerrFDBrX9hjHJsL93arUGAotZbx0_mRC4ck4tig" alt="Third slide">
-                </div>
-                </div>
-                <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
-                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                <span class="sr-only">Previous</span>
-                </a>
-                <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
-                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                <span class="sr-only">Next</span>
-                </a>
-                </div>
+                div#carouselNews.carousel.slide(data-ride="carousel")
+                    ol.carousel-indicators
+                        - var firstClass = 'active'
+                        - var i = 0
+                        each oneNews in news
+
+                            li(data-target="#carouselNews", data-slide-to = i, class = firstClass)
+
+                            - firstClass = ''
+                            - i++
+
+
+                    div.carousel-inner
+
+                        - var firstClass = 'active'
+                        each oneNews in news
+
+                            div.carousel-item(class = firstClass)
+                                img.slide-400(src='' + oneNews.img)
+                                div.carousel-caption
+                                   h5= oneNews.title
+                                   p= oneNews.text
+
+                            - firstClass = ''
+
+
+                    a.carousel-control-prev(href="#carouselNews", role="button", data-slide="prev")
+                        span.carousel-control-prev-icon(aria-hidden="true")
+                        span.sr-only Previous
+
+                    a.carousel-control-next(href="#carouselNews", role="button", data-slide="next")
+                        span.carousel-control-next-icon(aria-hidden="true")
+                        span.sr-only Next
 
             div(class="col-sm")
-                p Prefered products
+                p Prefered products / projects
 
-                <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
-                <ol class="carousel-indicators">
-                <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
-                <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
-                <li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
-                </ol>
-                <div class="carousel-inner">
-                <div class="carousel-item active">
-                <img class="d-block w-100" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR-j5h78ULl6WVerrFDBrX9hjHJsL93arUGAotZbx0_mRC4ck4tig" alt="First slide">
-                </div>
-                <div class="carousel-item">
-                <img class="d-block w-100" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR-j5h78ULl6WVerrFDBrX9hjHJsL93arUGAotZbx0_mRC4ck4tig" alt="Second slide">
-                </div>
-                <div class="carousel-item">
-                <img class="d-block w-100" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR-j5h78ULl6WVerrFDBrX9hjHJsL93arUGAotZbx0_mRC4ck4tig" alt="Third slide">
-                </div>
-                </div>
-                <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
-                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                <span class="sr-only">Previous</span>
-                </a>
-                <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
-                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                <span class="sr-only">Next</span>
-                </a>
-                </div>
+                //img(src="http://localhost:8203/nuxeo/api/v1/repo/default/id/e8e5a90e-ec02-4fa9-9354-62e3ef5e1e06/@rendition/thumbnail")
+
+                div#carouselProducts.carousel.slide(data-ride="carousel")
+                    ol.carousel-indicators
+                        - var firstClass = 'active'
+                        - var i = 0
+                        each oneNews in prefered
+
+                            li(data-target="#carouselProducts", data-slide-to = i, class = firstClass)
+
+                            - firstClass = ''
+                            - i++
+
+
+                    div.carousel-inner
+
+                        - var firstClass = 'active'
+                        each oneNews in prefered
+
+                            div.carousel-item(class = firstClass)
+                                img.slide-500(src='' + oneNews.img)
+
+                            - firstClass = ''
+
+
+                    a.carousel-control-prev(href="#carouselProducts", role="button", data-slide="prev")
+                        span.carousel-control-prev-icon(aria-hidden="true")
+                        span.sr-only Previous
+
+                    a.carousel-control-next(href="#carouselProducts", role="button", data-slide="next")
+                        span.carousel-control-next-icon(aria-hidden="true")
+                        span.sr-only Next
 
         div.row
             div.col-sm

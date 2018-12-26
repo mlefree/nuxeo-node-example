@@ -3,11 +3,13 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
+require('dotenv').config({ path: path.resolve(process.cwd(), '../.env')});
 
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 const testsRouter = require('./routes/tests');
 const apiRouter = require('./routes/api');
+const nxqlRouter = require('./routes/nxql');
 
 const app = express();
 
@@ -25,6 +27,7 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/tests', testsRouter);
 app.use('/api', apiRouter);
+app.use('/nxql', nxqlRouter);
 
 
 // catch 404 and forward to error handler
