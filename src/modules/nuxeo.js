@@ -37,11 +37,11 @@ module.exports = function (inTestMode) {
         }
 
         nuxeoModule.internal.nuxeoClient = new Nuxeo({
-            baseURL: process.env.NUXEO_URL,
+            baseURL: process.env.NUXEO_URL || 'http://localhost:8080/nuxeo',
             auth: {
                 method: 'basic',
-                username: process.env.NUXEO_LOGIN,
-                password: process.env.NUXEO_PASSWORD
+                username: process.env.NUXEO_LOGIN  || 'Administrator',
+                password: process.env.NUXEO_PASSWORD  || 'Administrator'
             }
         });
 
@@ -244,6 +244,8 @@ module.exports = function (inTestMode) {
                 if (docs && docs.entries && docs.entries.length > 0) {
                     preferedDocs = [];
                     docs.entries.forEach(doc => {
+
+                        console.log('$readNXQL: ', doc);
 
                         let path = doc.properties['file:content'] ? doc.properties['file:content'].data : 'na';
                         path = path.split('file:content')[0] + '@rendition/thumbnail';
