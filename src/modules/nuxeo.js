@@ -40,8 +40,8 @@ module.exports = function (inTestMode) {
             baseURL: process.env.NUXEO_URL || 'http://localhost:8080/nuxeo',
             auth: {
                 method: 'basic',
-                username: process.env.NUXEO_LOGIN  || 'Administrator',
-                password: process.env.NUXEO_PASSWORD  || 'Administrator'
+                username: process.env.NUXEO_LOGIN || 'Administrator',
+                password: process.env.NUXEO_PASSWORD || 'Administrator'
             }
         });
 
@@ -56,11 +56,11 @@ module.exports = function (inTestMode) {
                 // client.connected === true
                 // client === nuxeo
                 console.log('Connected OK!', client);
-                return Promise.resolve(''+ process.env.NUXEO_LOGIN+ ' - OK '+ client.serverVersion);
+                return Promise.resolve('' + process.env.NUXEO_LOGIN + ' - OK ' + client.serverVersion);
             })
             .catch(function (error) {
                 // wrong credentials / auth method / ...
-                return Promise.resolve(''+ process.env.NUXEO_LOGIN+ ' - KO : '+ error);
+                return Promise.resolve('' + process.env.NUXEO_LOGIN + ' - KO : ' + error);
             });
     };
 
@@ -117,7 +117,7 @@ module.exports = function (inTestMode) {
             .repository()
             .schemas(['dublincore', 'file'])
             // TODO MLE .queryAndFetch()
-            .query({query: query, currentPageIndex : 0})
+            .query({query: query, currentPageIndex: 0})
             .then(doc => {
                 doc.requestTimeSpentInMs = new Date() - beforeRequest;
                 return Promise.resolve(doc);
@@ -249,16 +249,20 @@ module.exports = function (inTestMode) {
 
                         let path = doc.properties['file:content'] ? doc.properties['file:content'].data : 'na';
                         path = path.split('file:content')[0] + '@rendition/thumbnail';
-                        path = path.replace('nuxeo/nxfile/default','nuxeo/api/v1/repo/default/id');
+                        path = path.replace('nuxeo/nxfile/default', 'nuxeo/api/v1/repo/default/id');
+                        if (process.env.NUXEO_PUBLIC_URL) {
+                            path = path.replace(process.env.NUXEO_URL, process.env.NUXEO_PUBLIC_URL);
+                        }
 
-                        preferedDocs.push({img : path});
+
+                        preferedDocs.push({img: path});
                     });
                 }
 
                 return preferedDocs;
             })
             .catch(err => {
-               return preferedDocs;
+                return preferedDocs;
             });
 
 
@@ -519,7 +523,11 @@ module.exports = function (inTestMode) {
                     values.push(val);
                     max++;
                 });
-                res.render('nxql', {title: `NXQL returns ${values.length} entity(ies)`, nxql: nxql, result: JSON.stringify(values)});
+                res.render('nxql', {
+                    title: `NXQL returns ${values.length} entity(ies)`,
+                    nxql: nxql,
+                    result: JSON.stringify(values)
+                });
             })
             .catch(error => {
                 console.log('#Error:', error);

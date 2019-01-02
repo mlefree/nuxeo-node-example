@@ -2,9 +2,11 @@
 
 Some tools to easily start and test Nuxeo instance
 
-based on https://developer.mozilla.org/en-US/docs/Learn/Server-side/Express_Nodejs/skeleton_website
+Edit your own **.env** file (look at .env.example), launch
 
-    DEBUG=express-locallibrary-tutorial:* npm start
+    npm start
     
-    
-Then load http://localhost:3000/
+then look at http://localhost:3000/
+
+
+> based on https://developer.mozilla.org/en-US/docs/Learn/Server-side/Express_Nodejs/skeleton_website
