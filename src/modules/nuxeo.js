@@ -203,11 +203,26 @@ module.exports = function (inTestMode) {
 
     };
 
+
+    nuxeoModule.internal.$getHomeConf = () => {
+
+        let conf;
+        try {
+            conf = require('../../data/home.json');
+        } catch (e) {
+
+        }
+        if (!conf) {
+            conf = {brand: {}, news: []};
+        }
+        return conf;
+    };
+
     nuxeoModule.internal.$getBranding = () => {
 
         nuxeoModule.internal.init();
 
-        let branding = require('./home.json').brand;
+        let branding = nuxeoModule.internal.$getHomeConf().brand;
 
         return Promise.resolve(branding);
     };
@@ -217,7 +232,7 @@ module.exports = function (inTestMode) {
 
         nuxeoModule.internal.init();
 
-        let news = require('./home.json').news;
+        let news = nuxeoModule.internal.$getHomeConf().news;
 
         return Promise.resolve(news);
     };
