@@ -1,13 +1,13 @@
 {
   "name": "nuxeo-node-example",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "private": false,
   "scripts": {
     "start": "node ./src/bin/www",
     "start-empty": "node ./src/bin/wwwempty",
-    "start-docker" : "docker run -p 3100:3000 --env-file .env -d mlefree/nuxeo-node-example",
-    "start-compose" : "docker-compose up --build",
-    "build-docker" : "docker build -t mlefree/nuxeo-node-example ."
+    "start-docker": "docker run -p 3100:3000 --env-file .env -d mlefree/nuxeo-node-example",
+    "start-compose": "docker-compose up --build",
+    "build-docker": "docker build -t mlefree/nuxeo-node-example ."
   },
   "bin": {
     "nuxeo-node-example": "./src/bin/www"
