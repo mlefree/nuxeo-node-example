@@ -15,5 +15,5 @@ services:
       NUXEO_PUBLIC_URL: "http://nuxeo.yourcorp.com/nuxeo"
       DATA_PATH: "/usr/app/data"
     volumes:
-      - ".node_6local:/usr/app/data"
-      - ".node_6global:/usr/local/lib/node_modules/nuxeo-node-example/data"
+      - ".test6_local:/usr/app/data"
+      - ".test6_global:/usr/local/lib/node_modules/nuxeo-node-example/data"
