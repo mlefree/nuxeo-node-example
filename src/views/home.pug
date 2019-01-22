@@ -5,49 +5,57 @@ block content
     div.jumbotron.jumbotron-fluid.bg-primary(style='background:url("' + branding.bg + '") no-repeat center center fixed; background-size: cover;')
         div.container
             h1.welcome
-                | Welcome in your Nuxeo Node Portal
+                | Welcome in your Nuxeo Portal
 
 
     div.container
         div.row
-            div(class="col-sm")
-                p News
-                div#carouselNews.carousel.slide(data-ride="carousel")
-                    ol.carousel-indicators
-                        - var firstClass = 'active'
-                        - var i = 0
-                        each oneNews in news
-
-                            li(data-target="#carouselNews", data-slide-to = i, class = firstClass)
-
-                            - firstClass = ''
-                            - i++
+            div.col-sm
+                div.card
 
 
-                    div.carousel-inner
+                    div.card-body
+                        h5 News
+                        div#carouselNews.carousel.slide(data-ride="carousel")
+                            ol.carousel-indicators
+                                - var firstClass = 'active'
+                                - var i = 0
+                                each oneNews in news
 
-                        - var firstClass = 'active'
-                        each oneNews in news
+                                    li(data-target="#carouselNews", data-slide-to = i, class = firstClass)
 
-                            div.carousel-item(class = firstClass)
-                                img.slide-400(src='' + oneNews.img)
-                                div.carousel-caption
-                                   h5= oneNews.title
-                                   p= oneNews.text
-
-                            - firstClass = ''
+                                    - firstClass = ''
+                                    - i++
 
 
-                    a.carousel-control-prev(href="#carouselNews", role="button", data-slide="prev")
-                        span.carousel-control-prev-icon(aria-hidden="true")
-                        span.sr-only Previous
+                            div.carousel-inner
 
-                    a.carousel-control-next(href="#carouselNews", role="button", data-slide="next")
-                        span.carousel-control-next-icon(aria-hidden="true")
-                        span.sr-only Next
+                                - var firstClass = 'active'
+                                each oneNews in news
 
-            div(class="col-sm")
-                p Prefered products / projects
+                                    div.carousel-item(class = firstClass)
+                                        img.w-100(src='' + oneNews.img)
+                                        div.carousel-caption
+                                           h5= oneNews.title
+                                           p= oneNews.text
+
+                                    - firstClass = ''
+
+
+                            a.carousel-control-prev(href="#carouselNews", role="button", data-slide="prev")
+                                span.carousel-control-prev-icon(aria-hidden="true")
+                                span.sr-only Previous
+
+                            a.carousel-control-next(href="#carouselNews", role="button", data-slide="next")
+                                span.carousel-control-next-icon(aria-hidden="true")
+                                span.sr-only Next
+
+
+            div.col-sm
+                //<div class="card" style="width: 18rem;">
+                //<img class="card-img-top" src=".../100px180/" alt="Card image cap">
+                //<div class="card-body">
+                //h4 Preferred products / projects
 
                 //img(src="http://localhost:8203/nuxeo/api/v1/repo/default/id/e8e5a90e-ec02-4fa9-9354-62e3ef5e1e06/@rendition/thumbnail")
 
@@ -55,7 +63,7 @@ block content
                     ol.carousel-indicators
                         - var firstClass = 'active'
                         - var i = 0
-                        each oneNews in prefered
+                        each oneNews in preferred
 
                             li(data-target="#carouselProducts", data-slide-to = i, class = firstClass)
 
@@ -66,10 +74,10 @@ block content
                     div.carousel-inner
 
                         - var firstClass = 'active'
-                        each oneNews in prefered
+                        each oneNews in preferred
 
                             div.carousel-item(class = firstClass)
-                                img.slide-500(src='' + oneNews.img)
+                                img.w-100(src='' + oneNews.img)
 
                             - firstClass = ''
 
@@ -85,11 +93,3 @@ block content
         div.row
             div.col-sm
                 hr.my-4
-
-        div.row
-            div(class="col-sm-6")
-                p Add your content
-                a.btn.btn-primary.btn-lg by mail
-                hr.my-4
-                a.btn.btn-primary.btn-lg by upload
-                p &nbsp;

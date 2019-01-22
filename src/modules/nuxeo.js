@@ -32,9 +32,10 @@ module.exports = function (inTestMode) {
     nuxeoModule.internal.init = () => {
 
         if (nuxeoModule.internal.nuxeoClient) {
-
             return;
         }
+
+        nuxeoModule.internal.initHomeConf();
 
         nuxeoModule.internal.nuxeoClient = new Nuxeo({
             baseURL: process.env.NUXEO_URL || 'http://localhost:8080/nuxeo',
@@ -45,6 +46,11 @@ module.exports = function (inTestMode) {
             }
         });
 
+    };
+
+    nuxeoModule.internal.requireUncached = (module) => {
+        delete require.cache[require.resolve(module)];
+        return require(module)
     };
 
     nuxeoModule.internal.$getNameWithStatus = () => {
@@ -60,6 +66,7 @@ module.exports = function (inTestMode) {
             })
             .catch(function (error) {
                 // wrong credentials / auth method / ...
+                console.error('Connection KO!', error);
                 return Promise.resolve('' + process.env.NUXEO_LOGIN + ' - KO : ' + error);
             });
     };
@@ -103,7 +110,6 @@ module.exports = function (inTestMode) {
             });
     };
 
-
     nuxeoModule.internal.$readNXQL = (nxql) => {
 
         nuxeoModule.internal.init();
@@ -118,6 +124,36 @@ module.exports = function (inTestMode) {
             .schemas(['dublincore', 'file'])
             // TODO MLE .queryAndFetch()
             .query({query: query, currentPageIndex: 0})
+            .then(doc => {
+                doc.requestTimeSpentInMs = new Date() - beforeRequest;
+                return Promise.resolve(doc);
+            })
+            .catch(err => {
+                const doc = {};
+                doc.requestTimeSpentInMs = new Date() - beforeRequest;
+                // console.error(err);
+                return Promise.reject(err);
+            });
+    };
+
+    nuxeoModule.internal.$readOperation = (op) => {
+
+        nuxeoModule.internal.init();
+
+        const beforeRequest = new Date();
+
+
+        return nuxeoModule.internal.nuxeoClient
+            .operation(op)
+            //.input('/default-domain')
+            //   .params({
+            //     name: 'workspaces',
+            //   })
+            .execute()
+            //return nuxeoModule.internal.nuxeoClient
+            //   .repository()
+            //   .schemas(['dublincore', 'file'])
+            //   .automation({automation: automation, currentPageIndex: 0})
             .then(doc => {
                 doc.requestTimeSpentInMs = new Date() - beforeRequest;
                 return Promise.resolve(doc);
@@ -203,12 +239,33 @@ module.exports = function (inTestMode) {
 
     };
 
+    nuxeoModule.internal.initHomeConf = () => {
+
+        try {
+            const samplefilePath = path.join(__dirname, 'home.sample.json');
+            const filePath = path.join(__dirname, '../../data/home.json');
+            console.log('filepaths: ', samplefilePath, filePath);
+
+            if (fs.existsSync(filePath)) {
+                return;
+            }
+
+            fs.copyFile(samplefilePath, filePath, (err) => {
+                if (err) throw err;
+                console.log('copy done');
+            });
+        } catch (e) {
+            console.error(e);
+        }
+    };
 
     nuxeoModule.internal.$getHomeConf = () => {
 
         let conf;
         try {
-            conf = require('../../data/home.json');
+            const filePath = path.join(__dirname, '../../data/home.json');
+            console.log('filepath: ', filePath);
+            conf = nuxeoModule.internal.requireUncached(filePath);
         } catch (e) {
 
         }
@@ -245,15 +302,17 @@ module.exports = function (inTestMode) {
             {
                 uid: 344,
                 name: 'test 01',
-                img: 'https://www.courts.com.sg/media/catalog/product/cache/image/4e8ff541545308adfd94f8ed2a2008b9/i/p/ip119172_00.jpg'
+                img: './images/product.png'
             },
             {
                 uid: 345,
-                name: 'test 01',
-                img: 'https://www.courts.com.sg/media/catalog/product/cache/image/4e8ff541545308adfd94f8ed2a2008b9/i/p/ip119172_00.jpg'
+                name: 'test 02',
+                img: './images/product.png'
             }];
 
-        return nuxeoModule.internal.$readNXQL("select * from DOCUMENT where ecm:fulltext = 'test'")
+        //return nuxeoModule.internal.$readNXQL("select * from DOCUMENT where ecm:fulltext = 'test'")
+        //return nuxeoModule.internal.$readNXQL("SELECT * FROM Document where ecm:mixinType != 'HiddenInNavigation' AND ecm:isCheckedInVersion = 0 AND ecm:currentLifeCycleState != 'deleted' AND collectionMember:collectionIds/* = ?")
+        return nuxeoModule.internal.$readOperation("Favorite.Fetch")
             .then((docs) => {
 
                 if (docs && docs.entries && docs.entries.length > 0) {
@@ -319,19 +378,36 @@ module.exports = function (inTestMode) {
 
     nuxeoModule.web.error = (res, err) => {
 
-        // set locals, only providing error in development
-        res.locals.message = JSON.stringify(err);
-        //res.locals.error = req.app.get('env') === 'development' ? err : {};
+        let branding;
 
-        err.status = 500;
-        // render the error page
-        res.status(500);
-        res.render('error', {message: err.message || JSON.stringify(err), error: err});
+        nuxeoModule.internal.$getBranding()
+            .then((b) => {
+                branding = b;
+            })
+            .then(() => {
+
+                // set locals, only providing error in development
+                res.locals.message = JSON.stringify(err);
+                //res.locals.error = req.app.get('env') === 'development' ? err : {};
+
+                err.status = 500;
+                // render the error page
+                res.status(500);
+                res.render('error', {message: err.message || JSON.stringify(err), error: err, branding: branding});
+            });
     };
 
     nuxeoModule.web.testAll = (req, res) => {
-        res.status(200);
-        res.render('tests', {title: 'Nuxeo Minute Test'});
+        let branding;
+
+        nuxeoModule.internal.$getBranding()
+            .then((b) => {
+                branding = b;
+            })
+            .then(() => {
+                res.status(200);
+                res.render('tests', {title: 'Nuxeo Minute Test', branding: branding});
+            });
     };
 
     nuxeoModule.web.testRead = (req, res) => {
@@ -524,31 +600,58 @@ module.exports = function (inTestMode) {
 
 
     nuxeoModule.web.testNXQL = (req, res) => {
+        let branding;
 
-        let nxql = req.query.nxql;
-        if (!nxql) {
-            return res.render('nxql', {title: `No NXQL.`, nxql: nxql});
-        }
-
-        nuxeoModule.internal.$readNXQL(nxql)
-            .then(vals => {
-                let max = 0;
-                let values = [];
-                vals.entries.forEach(val => {
-                    values.push(val);
-                    max++;
-                });
-                res.render('nxql', {
-                    title: `NXQL returns ${values.length} entity(ies)`,
-                    nxql: nxql,
-                    result: JSON.stringify(values)
-                });
+        nuxeoModule.internal.$getBranding()
+            .then((b) => {
+                branding = b;
             })
-            .catch(error => {
-                console.log('#Error:', error);
-                res.render('nxql', {title: `NXQL failed`, nxql: nxql, error: JSON.stringify(error)});
+            .then(() => {
+
+
+                let nxql = req.query.nxql;
+                if (!nxql) {
+                    return res.render('nxql', {title: `No NXQL.`, nxql: nxql, branding: branding});
+                }
+
+                nuxeoModule.internal.$readNXQL(nxql)
+                    .then(vals => {
+                        let max = 0;
+                        let values = [];
+                        vals.entries.forEach(val => {
+                            values.push(val);
+                            max++;
+                        });
+                        res.render('nxql', {
+                            title: `NXQL returns ${values.length} entity(ies)`,
+                            nxql: nxql,
+                            result: JSON.stringify(values)
+                        });
+                    })
+                    .catch(error => {
+                        console.log('#Error:', error);
+                        res.render('nxql', {
+                            title: `NXQL failed`,
+                            nxql: nxql,
+                            error: JSON.stringify(error),
+                            branding: branding
+                        });
+                    });
             });
 
+    };
+
+    nuxeoModule.web.importContent = (req, res) => {
+
+        let branding;
+
+        nuxeoModule.internal.$getBranding()
+            .then((b) => {
+                branding = b;
+            })
+            .then(() => {
+                res.render('import', {title: `Import your content`, branding: branding});
+            });
     };
 
 

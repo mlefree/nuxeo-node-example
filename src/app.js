@@ -10,6 +10,7 @@ const usersRouter = require('./routes/users');
 const testsRouter = require('./routes/tests');
 const apiRouter = require('./routes/api');
 const nxqlRouter = require('./routes/nxql');
+const importRouter = require('./routes/import');
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use('/users', usersRouter);
 app.use('/tests', testsRouter);
 app.use('/api', apiRouter);
 app.use('/nxql', nxqlRouter);
+app.use('/import', importRouter);
 
 
 // catch 404 and forward to error handler

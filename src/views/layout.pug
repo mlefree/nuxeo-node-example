@@ -15,8 +15,14 @@ html(lang='en')
 
     body
 
+        - var branding2 = {"logo" : ""}
+        if !!branding
+            - branding2 = branding
+
+
         nav(class="navbar navbar-expand-lg navbar-light bg-light")
-            a(class="navbar-brand", href="/") NNP
+            a.navbar-brand(href="/")
+                img(src='' + branding2.logo, style="max-width:40px;max-height=40px;")
             button.navbar-toggler(type="button", data-toggle="collapse", data-target="#navbarSupportedContent", aria-controls="navbarSupportedContent", aria-expanded="false", aria-label="Toggle navigation")
                 span.navbar-toggler-icon
 
@@ -25,10 +31,19 @@ html(lang='en')
                     li.nav-item
                         a.nav-link(href="/") Home
 
-                    li.nav-item
+                    li.nav-item.dropdown
+                        a.nav-link.dropdown-toggle#navbarDropdown(role="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false") And more...
+                        div.dropdown-menu(aria-labelledby="navbarDropdown")
+                            a.dropdown-item(href="/tests") Minute tests
+                            a.dropdown-item(href="/nxql") Queries
+                            div.dropdown-divider
+                            a.dropdown-item(href="/import") Add content
+
+
+                    //li.nav-item
                         a.nav-link(href="/tests") Minute tests
 
-                    li.nav-item
+                    //li.nav-item
                         a.nav-link(href="/nxql") Queries
 
                 ul.navbar-nav.flex-row.ml-md-auto.d-none.d-md-flex
@@ -78,5 +93,5 @@ html(lang='en')
 
         footer
             nav.navbar.navbar-light.justify-content-end
-                p 2018 &copy;
+                p 2019 &copy;
 

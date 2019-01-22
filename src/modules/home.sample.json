@@ -1,19 +1,20 @@
 {
   "brand" : {
     "logo": "./images/logo.png",
-    "bg": "./images/bg.jpg"
+    "bg": "./images/bg.jpg",
+    "title": "Welcome in NNP"
   },
   "news" : [
     {
       "img": "./images/bg.jpg",
       "url" : "http://acme.org",
-      "title" : "newz 1",
+      "title" : "sample newz 1",
       "text" : "my first note..."
     },
     {
       "img": "./images/alice.jpg",
       "url" : "http://acme.org",
-      "title" : "newz 2",
+      "title" : "sample newz 2",
       "text" : "my second note..."
     }
   ]

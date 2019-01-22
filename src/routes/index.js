@@ -4,7 +4,7 @@ let nxo = require('../modules/nuxeo')(false);
 
 router.get('/', function (req, res) {
 
-    let nameAndStatus, branding, prefered, news;
+    let nameAndStatus, branding, preferred, news;
 
     nxo.internal.$getBranding()
         .then((b) => {
@@ -12,7 +12,7 @@ router.get('/', function (req, res) {
             return nxo.internal.$getPrefered();
         })
         .then((p) => {
-            prefered = p;
+            preferred = p;
             return nxo.internal.$getNews();
         })
         .then((n) => {
@@ -25,13 +25,13 @@ router.get('/', function (req, res) {
                 title: 'Welcome!',
                 nameAndStatus: nameAndStatus,
                 branding: branding,
-                prefered: prefered,
+                preferred: preferred,
                 news: news
             });
         })
         .catch(error => {
             res.status(500);
-            res.render('error', {message: 'Nuxdeo looks not well configured', error: error});
+            res.render('error', {message: 'Nuxeo seems not well configured', error: error});
         });
 });
 

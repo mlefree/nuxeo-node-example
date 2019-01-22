@@ -1,0 +1,19 @@
+version: '3'
+services:
+
+  node:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    #image: node:lts-jessie
+    ports:
+      - "3100:3000"
+    environment:
+      NUXEO_URL: "http://nuxeo.yourcorp.com:8080/nuxeo"
+      NUXEO_LOGIN: Administrator
+      NUXEO_PASSWORD: Administrator
+      NUXEO_PUBLIC_URL: "http://nuxeo.yourcorp.com/nuxeo"
+      DATA_PATH: "/usr/app/data"
+    volumes:
+      - ".node_6local:/usr/app/data"
+      - ".node_6global:/usr/local/lib/node_modules/nuxeo-node-example/data"
