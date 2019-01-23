@@ -13,7 +13,6 @@ services:
       NUXEO_LOGIN: Administrator
       NUXEO_PASSWORD: Administrator
       NUXEO_PUBLIC_URL: "http://nuxeo.yourcorp.com/nuxeo"
-      DATA_PATH: "/usr/app/data"
     volumes:
-      - ".test6_local:/usr/app/data"
-      - ".test6_global:/usr/local/lib/node_modules/nuxeo-node-example/data"
+      - ".data_local:/usr/app/data"
+      - ".data_global:/usr/local/lib/node_modules/nuxeo-node-example/data"

@@ -29,6 +29,7 @@ bower_components
 target
 index-local.html
 .env
+.data_*
 
 # Folders created using Docker volumes.
 nuxeo_binaries

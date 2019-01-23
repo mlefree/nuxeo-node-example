@@ -14,10 +14,11 @@ RUN npm i nuxeo-node-example -g
 #RUN mkdir -p /usr/app/data
 #RUN chown -R 1000:1000 /usr/app/data
 
-EXPOSE 3000
-CMD [ "npm", "start" ]
+#CMD [ "npm", "start" ]
+CMD nuxeo-node-example
 #CMD [ "npm", "run", "start-empty" ]
 
+EXPOSE 3000
 #VOLUME ["/usr/src/app/data"]
 #ENTRYPOINT ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
 

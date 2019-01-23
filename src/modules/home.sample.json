@@ -1,21 +1,15 @@
 {
   "brand" : {
     "logo": "./images/logo.png",
-    "bg": "./images/bg.jpg",
-    "title": "Welcome in NNP"
+    "bg": "./images/alice.jpg",
+    "title": "Welcome in your corp portal"
   },
   "news" : [
     {
       "img": "./images/bg.jpg",
       "url" : "http://acme.org",
-      "title" : "sample newz 1",
-      "text" : "my first note..."
-    },
-    {
-      "img": "./images/alice.jpg",
-      "url" : "http://acme.org",
-      "title" : "sample newz 2",
-      "text" : "my second note..."
+      "title" : "Your first news",
+      "text" : "First note..."
     }
   ]
 }

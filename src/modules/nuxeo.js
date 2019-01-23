@@ -110,20 +110,18 @@ module.exports = function (inTestMode) {
             });
     };
 
-    nuxeoModule.internal.$readNXQL = (nxql) => {
+
+    nuxeoModule.internal.$readQuery = (query) => {
 
         nuxeoModule.internal.init();
 
         const beforeRequest = new Date();
 
-        let query = nxql;
-        // console.log(query);
-
         return nuxeoModule.internal.nuxeoClient
             .repository()
             .schemas(['dublincore', 'file'])
+            .query(query)
             // TODO MLE .queryAndFetch()
-            .query({query: query, currentPageIndex: 0})
             .then(doc => {
                 doc.requestTimeSpentInMs = new Date() - beforeRequest;
                 return Promise.resolve(doc);
@@ -136,16 +134,22 @@ module.exports = function (inTestMode) {
             });
     };
 
-    nuxeoModule.internal.$readOperation = (op) => {
+    nuxeoModule.internal.$readNXQL = (nxql) => {
+
+        nuxeoModule.internal.init();
+
+        return nuxeoModule.internal.$readQuery({query: nxql, currentPageIndex: 0});
+    };
+
+    nuxeoModule.internal.$readOperation = (op, input) => {
 
         nuxeoModule.internal.init();
 
         const beforeRequest = new Date();
 
-
         return nuxeoModule.internal.nuxeoClient
             .operation(op)
-            //.input('/default-domain')
+            .input(input)
             //   .params({
             //     name: 'workspaces',
             //   })
@@ -312,7 +316,30 @@ module.exports = function (inTestMode) {
 
         //return nuxeoModule.internal.$readNXQL("select * from DOCUMENT where ecm:fulltext = 'test'")
         //return nuxeoModule.internal.$readNXQL("SELECT * FROM Document where ecm:mixinType != 'HiddenInNavigation' AND ecm:isCheckedInVersion = 0 AND ecm:currentLifeCycleState != 'deleted' AND collectionMember:collectionIds/* = ?")
-        return nuxeoModule.internal.$readOperation("Favorite.Fetch")
+        return nuxeoModule.internal
+            .$readOperation("Favorite.Fetch")
+            .then((doc) => {
+
+                // repository.fetch('/default-domain')
+                //         .then((doc) => repository.query({
+                //           pageProvider: 'CURRENT_DOC_CHILDREN',
+                //           queryParams: [doc.uid],
+                //         }))
+                //         .then((res) => {
+                //           const {
+                //             entries, resultsCount, currentPageSize, currentPageIndex, numberOfPages,
+                //           } = res;
+                //           expect(entries.length).to.be.equal(3);
+                //           expect(resultsCount).to.be.equal(3);
+                //           expect(currentPageSize).to.be.equal(3);
+                //           expect(currentPageIndex).to.be.equal(0);
+                //           expect(numberOfPages).to.be.equal(1);
+                //         })
+                //     ));
+
+                return nuxeoModule.internal.$readQuery({pageProvider: 'CURRENT_DOC_CHILDREN', queryParams: [doc.uid]});
+                // OK but without all properties: return nuxeoModule.internal.$readOperation("Collection.GetDocumentsFromCollection", doc.uid);
+            })
             .then((docs) => {
 
                 if (docs && docs.entries && docs.entries.length > 0) {
@@ -336,6 +363,7 @@ module.exports = function (inTestMode) {
                 return preferedDocs;
             })
             .catch(err => {
+                console.error(err);
                 return preferedDocs;
             });
 
