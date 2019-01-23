@@ -337,7 +337,7 @@ module.exports = function (inTestMode) {
                 //         })
                 //     ));
 
-                return nuxeoModule.internal.$readQuery({pageProvider: 'CURRENT_DOC_CHILDREN', queryParams: [doc.uid]});
+                return nuxeoModule.internal.$readQuery({pageProvider: 'default_content_collection', queryParams: [doc.uid]});
                 // OK but without all properties: return nuxeoModule.internal.$readOperation("Collection.GetDocumentsFromCollection", doc.uid);
             })
             .then((docs) => {
