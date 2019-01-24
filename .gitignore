@@ -30,6 +30,7 @@ target
 index-local.html
 .env
 .data_*
+.gen
 
 # Folders created using Docker volumes.
 nuxeo_binaries
