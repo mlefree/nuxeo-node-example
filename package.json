@@ -1,6 +1,6 @@
 {
   "name": "nuxeo-node-example",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": false,
   "scripts": {
     "start": "node ./src/bin/www",
