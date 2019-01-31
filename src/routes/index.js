@@ -4,7 +4,12 @@ let nxo = require('../modules/nuxeo')(false);
 
 router.get('/', function (req, res) {
 
-    let nameAndStatus, branding, preferred, news;
+    let nameAndStatus, branding, preferred, news, appinfo;
+
+    try {
+        appinfo = require('../../package.json');
+    } catch (e) {
+    }
 
     nxo.internal.$getBranding()
         .then((b) => {
@@ -26,7 +31,8 @@ router.get('/', function (req, res) {
                 nameAndStatus: nameAndStatus,
                 branding: branding,
                 preferred: preferred,
-                news: news
+                news: news,
+                appinfo: appinfo
             });
         })
         .catch(error => {

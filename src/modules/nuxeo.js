@@ -119,7 +119,8 @@ module.exports = function (inTestMode) {
 
         return nuxeoModule.internal.nuxeoClient
             .repository()
-            .schemas(['dublincore', 'file'])
+            //.schemas(['dublincore', 'file'])
+            .enricher('document', 'thumbnail')
             .query(query)
             // TODO MLE .queryAndFetch()
             .then(doc => {
@@ -150,6 +151,7 @@ module.exports = function (inTestMode) {
         return nuxeoModule.internal.nuxeoClient
             .operation(op)
             .input(input)
+            .schemas(['dublincore', 'file'])
             //   .params({
             //     name: 'workspaces',
             //   })
@@ -337,7 +339,10 @@ module.exports = function (inTestMode) {
                 //         })
                 //     ));
 
-                return nuxeoModule.internal.$readQuery({pageProvider: 'default_content_collection', queryParams: [doc.uid]});
+                return nuxeoModule.internal.$readQuery({
+                    pageProvider: 'default_content_collection',
+                    queryParams: [doc.uid]
+                });
                 // OK but without all properties: return nuxeoModule.internal.$readOperation("Collection.GetDocumentsFromCollection", doc.uid);
             })
             .then((docs) => {
@@ -348,13 +353,14 @@ module.exports = function (inTestMode) {
 
                         console.log('$readNXQL: ', doc);
 
-                        let path = doc.properties['file:content'] ? doc.properties['file:content'].data : 'na';
-                        path = path.split('file:content')[0] + '@rendition/thumbnail';
-                        path = path.replace('nuxeo/nxfile/default', 'nuxeo/api/v1/repo/default/id');
-                        if (process.env.NUXEO_PUBLIC_URL) {
-                            path = path.replace(process.env.NUXEO_URL, process.env.NUXEO_PUBLIC_URL);
-                        }
+                        // let path = doc.properties['file:content'] ? doc.properties['file:content'].data : 'na';
+                        // path = path.split('file:content')[0] + '@rendition/thumbnail';
+                        // path = path.replace('nuxeo/nxfile/default', 'nuxeo/api/v1/repo/default/id');
+                        // if (process.env.NUXEO_PUBLIC_URL) {
+                        //     path = path.replace(process.env.NUXEO_URL, process.env.NUXEO_PUBLIC_URL);
+                        // }
 
+                        let path = doc.contextParameters.thumbnail.url;
 
                         preferedDocs.push({img: path});
                     });

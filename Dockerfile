@@ -4,7 +4,7 @@ WORKDIR /usr/app
 
 COPY package*.json ./
 COPY src ./src
-#COPY data ./data
+COPY data ./data
 
 # Run local version:
 RUN npm install
