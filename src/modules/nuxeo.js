@@ -4,6 +4,7 @@ const {map, mapTo, delay, pipe, switchMap, mergeMap, concatMap, reduce, catchErr
 const fs = require('fs');
 const path = require('path');
 const arrAvg = yourArray => Math.round(yourArray.reduce((a, b) => a + b, 0) / yourArray.length);
+const cache = require('./cache')(false);
 
 module.exports = function (inTestMode) {
 
@@ -109,7 +110,6 @@ module.exports = function (inTestMode) {
                 return Promise.resolve(doc);
             });
     };
-
 
     nuxeoModule.internal.$readQuery = (query) => {
 
@@ -265,7 +265,7 @@ module.exports = function (inTestMode) {
         }
     };
 
-    nuxeoModule.internal.$getHomeConf = () => {
+    nuxeoModule.internal.getHomeConf = () => {
 
         let conf;
         try {
@@ -285,19 +285,40 @@ module.exports = function (inTestMode) {
 
         nuxeoModule.internal.init();
 
-        let branding = nuxeoModule.internal.$getHomeConf().brand;
+        let branding = nuxeoModule.internal.getHomeConf().brand;
 
-        return Promise.resolve(branding);
+        return cache.api.$getImgData(branding.logo)
+            .then((logo) => {
+                branding.logo = logo;
+                return cache.api.$getImgData(branding.bg);
+            })
+            .then((bg) => {
+                branding.bg = bg;
+                return Promise.resolve(branding);
+            });
     };
 
+    nuxeoModule.internal.$refreshtNewsImage = (news, index) => {
+
+        return cache.api.$getImgData(news[index].img)
+            .then((img) => {
+                news[index].img = img;
+                return Promise.resolve(news);
+            });
+    };
 
     nuxeoModule.internal.$getNews = () => {
 
         nuxeoModule.internal.init();
 
-        let news = nuxeoModule.internal.$getHomeConf().news;
+        let news = nuxeoModule.internal.getHomeConf().news;
 
-        return Promise.resolve(news);
+        let all = [];
+        for (let i = 0; i < news.length; i++) {
+            all.push(nuxeoModule.internal.$refreshtNewsImage(news, i));
+        }
+
+        return Promise.all(all).then(() => Promise.resolve(news));
     };
 
     nuxeoModule.internal.$getPrefered = () => {
@@ -320,6 +341,16 @@ module.exports = function (inTestMode) {
         //return nuxeoModule.internal.$readNXQL("SELECT * FROM Document where ecm:mixinType != 'HiddenInNavigation' AND ecm:isCheckedInVersion = 0 AND ecm:currentLifeCycleState != 'deleted' AND collectionMember:collectionIds/* = ?")
         return nuxeoModule.internal
             .$readOperation("Favorite.Fetch")
+            //.nuxeoClient.repository().fetch('/')
+            //.then((doc => {
+            //    let test = doc instanceof Nuxeo.Document;
+            //    return doc.fetchRendition('thumbnail');
+            //}))
+            //.then((res) => {
+                // in the browser, use res.blob() to work with the rendition
+                // in Node.js, use res.body
+            //    return res.blob();
+            //})
             .then((doc) => {
 
                 // repository.fetch('/default-domain')
@@ -347,6 +378,7 @@ module.exports = function (inTestMode) {
             })
             .then((docs) => {
 
+                let all = [];
                 if (docs && docs.entries && docs.entries.length > 0) {
                     preferedDocs = [];
                     docs.entries.forEach(doc => {
@@ -360,12 +392,53 @@ module.exports = function (inTestMode) {
                         //     path = path.replace(process.env.NUXEO_URL, process.env.NUXEO_PUBLIC_URL);
                         // }
 
-                        let path = doc.contextParameters.thumbnail.url;
+                        //let path = doc.contextParameters.thumbnail.url;
 
-                        preferedDocs.push({img: path});
+                        const p = doc
+                            //.fetchBlob()
+                            .fetchRendition('thumbnail')
+                            .then(function (res) {
+                                // in the browser, use res.blob() to work with the rendition
+                                // in Node.js, use res.body
+                                return res.blob();
+                            })
+                            .then((blob) => {
+                                //const urlCreator = window.URL || window.webkitURL;
+                                //var imageUrl = URL.createObjectURL(blob);
+                                //document.querySelector("#image").src = imageUrl;
+
+                                //var bufferSym = Symbol('buffer');
+                                //const symbols = Object.getOwnPropertySymbols(blob);
+                                //var bufferSym = Symbol.for('buffer');
+
+                                //console.log(symbols[3] === bufferSym);
+                                //bufferSym = symbols[3];
+                                let bufferBase64 = 'AAABAAEAEBAAAAEACABoBQAAFgAAACgAAAAQAAAAIAAAAAEACAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAx8fHAPv7+wA9PT0Aenp6ANnZ2QAbGxsA4uLiAIyMjABhYWEACwsLACYmJgAvLy8Ay8vLAP///wB1dXUAqampAEpKSgAfHx8AMTExAA8PDwDW1tYATExMACoqKgCSkpIAZ2dnADw8PADz8/MA0dHRABMTEwCmpqYAR0dHAK+vrwADAwMAwcHBAJaWlgA3NzcAa2trALGxsQBSUlIAj4+PAPf39wA5OTkAFxcXAFRUVACRkZEABwcHAJqamgA7OzsAzs7OAODg4AAiIiIAtbW1AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADg4ODg4ODg4ODg4ODg4ODg4ODgAAKxYnKQ4ODg4ODg4ODgAXHS4uChQCDg4ODg4ODg4ALgAAAAAdFBwODg4ODg4HIS4ADg4ODgoLDg4ODg4OHS4oAA4ODg4GMxkQDg4ODhIuJQAODgAABjMOMRMaDg4jChQrDg4AFxIBAg4OEyAODhQOBSILMxcMAgQvDg4ODg4JDg4OFzMONA4OMy0ODg4SMw4ODgIYAikwGw4LAw4OBg8ODg4OCDMOJh8OMjMODiQVDg4ODg4TDg4nDA4ODg4ODg4ODg4ODTMODgssDg4ODg4ODg4ODg4zAA4aKg4ODg4ODg4ODg4OHhEODg4ODgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=';
+                                Object.getOwnPropertySymbols(blob).forEach((symbol) => {
+                                    if (symbol.toString() === 'Symbol(buffer)') {
+                                        const bufferSymVal = blob[symbol];
+                                        const buffer = Buffer.from(bufferSymVal);
+                                        //let buffer = new Buffer( blob, 'binary' )
+                                        bufferBase64 = buffer.toString('base64');
+                                        //let arraybuffer = Uint8Array.from(buffer).buffer;
+                                    }
+                                });
+
+                                preferedDocs.push({img: "data:image/x-icon;base64," + bufferBase64});
+                                // <img class="w-100" src="data:image/x-icon;base64,AAABAAEAEBAAAAEACABoBQAAFgAAACgAAAAQAAAAIAAAAAEACAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAx8fHAPv7+wA9PT0Aenp6ANnZ2QAbGxsA4uLiAIyMjABhYWEACwsLACYmJgAvLy8Ay8vLAP///wB1dXUAqampAEpKSgAfHx8AMTExAA8PDwDW1tYATExMACoqKgCSkpIAZ2dnADw8PADz8/MA0dHRABMTEwCmpqYAR0dHAK+vrwADAwMAwcHBAJaWlgA3NzcAa2trALGxsQBSUlIAj4+PAPf39wA5OTkAFxcXAFRUVACRkZEABwcHAJqamgA7OzsAzs7OAODg4AAiIiIAtbW1AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADg4ODg4ODg4ODg4ODg4ODg4ODgAAKxYnKQ4ODg4ODg4ODgAXHS4uChQCDg4ODg4ODg4ALgAAAAAdFBwODg4ODg4HIS4ADg4ODgoLDg4ODg4OHS4oAA4ODg4GMxkQDg4ODhIuJQAODgAABjMOMRMaDg4jChQrDg4AFxIBAg4OEyAODhQOBSILMxcMAgQvDg4ODg4JDg4OFzMONA4OMy0ODg4SMw4ODgIYAikwGw4LAw4OBg8ODg4OCDMOJh8OMjMODiQVDg4ODg4TDg4nDA4ODg4ODg4ODg4ODTMODgssDg4ODg4ODg4ODg4zAA4aKg4ODg4ODg4ODg4OHhEODg4ODgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=">
+                            });
+                        //const p = cache.api.$getImgData(path).then((data) => {
+                        //    preferedDocs.push({img: data});
+                        //    return Promise.resolve(data);
+                        //});
+                        all.push(p);
                     });
                 }
 
+                return Promise.all(all);
+            })
+            .then((all) => {
+                console.log(all);
                 return preferedDocs;
             })
             .catch(err => {
