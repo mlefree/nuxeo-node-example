@@ -13,6 +13,14 @@ html(lang='en')
         // link(rel="stylesheet", href="https://use.fontawesome.com/releases/v5.6.1/css/all.css", integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP", crossorigin="anonymous")
         script(src="/fontawesome-free-5.6.1-web/js/all.js")
 
+        script(async src="https://www.googletagmanager.com/gtag/js?id=UA-63329886-8")
+        script(type='text/javascript')
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-63329886-8');
+
+
     body
 
         - var branding2 = {"logo" : "", "version" : "_"}
