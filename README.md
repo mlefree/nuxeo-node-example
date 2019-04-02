@@ -1,6 +1,10 @@
 # nuxeo-node-example
 
-Some tools to easily start and test Nuxeo instance.
+Nuxeo integration portal example, based on Node.js.
+
+![Example01](screenshots/Screenshot2019-04-02.png)
+
+## Launch
 
 Edit your own **.env** file (look at .env.example)
 
