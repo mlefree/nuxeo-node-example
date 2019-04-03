@@ -70,8 +70,7 @@ services:
 
 ## Support
 
-Twitter / @mat_cloud
+@mat_cloud
 
-Nuxeo partner ? (In progress)
+Please pull request !
 
-> Project based on https://developer.mozilla.org/en-US/docs/Learn/Server-side/Express_Nodejs/skeleton_website
