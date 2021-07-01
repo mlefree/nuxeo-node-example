@@ -6,16 +6,44 @@ Nuxeo integration portal example, based on Node.js.
 
 ## Launch
 
-Edit your own **.env** file (look at .env.example)
+Edit your own **.env** file (look at .env.example) :
 
 ```dotenv
-NUXEO_URL=http://localhost:8080/nuxeo/
-NUXEO_LOGIN=XXX
-NUXEO_PASSWORD=XXX
-NUXEO_PUBLIC_URL=http://yourNuxeoPublicUrl:8080/nuxeo/
+NUXEO_URL=http://localhost:8100/nuxeo/
+NUXEO_LOGIN=Administrator
+NUXEO_PASSWORD=Administrator
+NUXEO_PUBLIC_URL=http://localhost:8100/nuxeo/
+NUXEO_CLIENT_ID=myAppId
+NUXEO_CLIENT_SECRET=secret
 ``` 
 
-then launch :
+Launch your Nuxeo instance :
+```bash
+docker compose up nuxeo
+```
+
+Declare your app (inspired by https://github.com/nuxeo/nuxeo-js-client#oauth2-authorization-and-bearer-token-authentication)
+```bash
+curl -i -X POST \
+   -H "Authorization:Basic QWRtaW5pc3RyYXRvcjpBZG1pbmlzdHJhdG9y" \
+   -H "Content-Type:application/json" \
+   -d \
+'{
+  "entity-type": "directoryEntry",
+  "directoryName": "oauth2Clients",
+  "properties": {
+      "name": "my Node App",
+      "clientId": "myAppId",
+      "clientSecret": "secret",
+      "redirectURIs": "http://localhost:3000/",
+      "autoGrant": "true",
+      "enabled": "true"
+   }
+}' \
+ 'http://localhost:8100/nuxeo/api/v1/directory/oauth2Clients'
+```
+
+then launch Node app :
 
 ```bash
 npm start
@@ -53,8 +81,10 @@ services:
     environment:
       NUXEO_URL: "http://localhost:8080/nuxeo"
       NUXEO_LOGIN: Administrator
-      NUXEO_PASSWORD: xxxx
-      NUXEO_PUBLIC_URL: "http://yourNuxeoPublicUrl:8080/nuxeo"
+      NUXEO_PASSWORD: Administrator
+      NUXEO_PUBLIC_URL: "http://localhost:8100/nuxeo"
+      NUXEO_CLIENT_ID: myAppId
+      NUXEO_CLIENT_SECRET: secret
     volumes:
       - ".data:/usr/local/lib/node_modules/nuxeo-node-example/data"   
 ```
