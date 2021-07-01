@@ -84,7 +84,7 @@ module.exports = function (inTestMode) {
 
         nuxeoModule.internal.initHomeConf();
 
-        resolveAuthentication();
+        useAuth2Authentication();
     };
 
     nuxeoModule.internal.requireUncached = (module) => {
