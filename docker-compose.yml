@@ -14,6 +14,8 @@ services:
       NUXEO_LOGIN: Administrator
       NUXEO_PASSWORD: Administrator
       NUXEO_PUBLIC_URL: "http://localhost:8100/nuxeo"
+      NUXEO_CLIENT_ID: myAppId
+      NUXEO_CLIENT_SECRET: secret
     volumes:
       - ".data_local:/usr/app/data"
       - ".data_global:/usr/local/lib/node_modules/nuxeo-node-example/data"
@@ -24,9 +26,9 @@ services:
       - "8100:8080"
     environment:
       #NUXEO_CLID: xxxxxxxx-yyyy-zzzz-aaaa-5b6c5bb967e0.1854638718.lGS/JY0kgbkoT8IOz2HxQ688I/PD8+0y9fmqjjoo3AQwUul8AoQZ4OlvYtxlSVNjrlY7/ErQPaGXg1jhlTZWis/t9M26Ix8ZKWTuHQ9FxBOnamW5qmSjbkCTbNwNJV3RSCyzHd+2Z0s1s9wH9ObZSm/OMKmlHmS28hIfhiGpAljbi8BHQmrptvj5EEYmekDgiUS4I75EcCt2TmaNnFp0VQgH0CeLKnqS1RUDliCnEe3BSuDmqaVUaadBC1f0C8+yRuAW2Y1pfxT0iARMqw8WkHhTVolJE1hCpXd4/pZa/0jGIXk7Jrt1mYkYd8FuyZq9JIFDglEoP4BJWNI+ub/yDQ==--ba6c1bb0-c0d3-4db1-94da-aaaaaaaaaaaa
-      NUXEO_PACKAGES: nuxeo-web-ui nuxeo-jsf-ui nuxeo-jsf-to-web-ui
+      NUXEO_PACKAGES: nuxeo-web-ui
       NUXEO_CUSTOM_PARAM: JAVA_OPTS=$$JAVA_OPTS -Xdebug -Xrunjdwp:transport=dt_socket,address=8787,server=y,suspend=n\nnuxeo.url=http://localhost:8100/nuxeo/
-    volumes:
-      - ".gen/nuxeo_log:/var/log/"
-      - ".gen/nuxeo_store:/opt/nuxeo/server/packages/store"
-      - ".gen/nuxeo_data:/var/lib/nuxeo/data"
+    #volumes:
+      #- ".gen/nuxeo_log:/var/log/"
+      #- ".gen/nuxeo_store:/opt/nuxeo/server/packages/store"
+      #- ".gen/nuxeo_data:/var/lib/nuxeo/data"

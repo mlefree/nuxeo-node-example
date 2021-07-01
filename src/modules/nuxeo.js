@@ -14,6 +14,10 @@ module.exports = function (inTestMode) {
     nuxeoModule.api = {};
     nuxeoModule.web = {};
     nuxeoModule.internal.nuxeoClient = null;
+    nuxeoModule.internal.nuxeoConnectInProgress = false;
+    nuxeoModule.internal.nuxeoUrl = process.env.NUXEO_URL || 'http://localhost:8080/nuxeo/';
+    nuxeoModule.internal.nuxeoClientId = process.env.NUXEO_CLIENT_ID || 'myAppId';
+    nuxeoModule.internal.nuxeoClientSecret = process.env.NUXEO_CLIENT_SECRET || 'secret';
     nuxeoModule.web.timoutLimit = 60000;
     nuxeoModule.web.delayReadTestLoop = 30;
     nuxeoModule.web.delayCreateTestLoop = 30;
@@ -23,7 +27,7 @@ module.exports = function (inTestMode) {
 
     nuxeoModule.web.testReadQuery = "SELECT * FROM Document"
         + " WHERE ecm:primaryType = 'File'"
-        + " AND ecm:path STARTSWITH '/default-domain/workspaces/test'"
+        + " AND ecm:path STARTSWITH '/default-domain'"
     //+ " AND content/data IS NOT NULL"
     //+ " AND dc:title <> content/name"
     //+ " AND ecm:isProxy = 0 AND ecm:isCheckedInVersion = 0"
@@ -33,58 +37,68 @@ module.exports = function (inTestMode) {
     nuxeoModule.web.testSampleQuery = "SELECT ecm:uuid, ecm:fulltextScore FROM Document WHERE ecm:fulltext = '*'"
     ;
 
-    useAuth2Authentication = () => {
+    const useAuth2Authentication = async () => {
         console.log("getAuthentificationCode");
-        axios.get('http://localhost:8080/nuxeo/oauth2/authorize?response_type=code&client_id=myAppE13', {
-            auth: {
-                username: 'Administrator',
-                password: 'Administrator'
-            }
-        })
-        .then(function (response) {
-            if (response.status == 200) {
-                var path = response.request.path;
+
+        try {
+            nuxeoModule.internal.nuxeoConnectInProgress = true;
+            const config = {
+                auth: {username: 'Administrator', password: 'Administrator'},
+                maxRedirects: 0,
+            };
+            const noResponseBecauseOf302 = await axios.get(nuxeoModule.internal.nuxeoUrl
+                + 'oauth2/authorize' +
+                '?response_type=code' +
+                '&client_id=' + nuxeoModule.internal.nuxeoClientId,
+                config);
+        } catch (errorDue302) {
+
+            if (errorDue302.response && errorDue302.response.status === 302) {
+                const path = errorDue302.response.headers.location;
                 if (path.includes("/?code=")) {
                     this.code = path.split("/?code=")[1];
                     if (this.code) {
-                        getBearerToken();
+                        await createNuxeoClientWithOAuth2();
                     }
                 }
+            } else {
+                console.error(errorDue302);
             }
-        })
-        .catch(function (error) {
-            console.log(error);
-        })
+        }
     };
 
-    getBearerToken = () => {
-        console.log("getBearerToken");
-        axios.post('http://localhost:8080/nuxeo/oauth2/token?grant_type=authorization_code&client_secret=secret&client_id=myAppE13&code=' + this.code)
-        .then(function (response) {
-            if (response.status == 200) {
+    const createNuxeoClientWithOAuth2 = async () => {
+        console.log("createNuxeoClientWithOAuth2");
+        try {
+            const response = await axios.post(nuxeoModule.internal.nuxeoUrl
+                + 'oauth2/token'
+                + '?grant_type=authorization_code'
+                + '&client_secret=' + nuxeoModule.internal.nuxeoClientSecret
+                + '&client_id=' + nuxeoModule.internal.nuxeoClientId
+                + '&code=' + this.code)
+
+            if (response.status === 200) {
                 this.token = response.data;
                 nuxeoModule.internal.nuxeoClient = new Nuxeo({
-                    baseURL: process.env.NUXEO_URL || 'http://localhost:8080/nuxeo',
+                    baseURL: nuxeoModule.internal.nuxeoUrl,
                     auth: {
-                        method: 'token',
-                        token: this.token.access_token
+                        method: 'bearerToken',
+                        token: this.token.access_token,
+                        clientId: nuxeoModule.internal.nuxeoClientId // optional OAuth2 client ID to refresh the access token
                     }
                 });
             }
-        })
-        .catch(function (error) {
-            console.log(error);
-        })
+        } catch (e) {
+            console.error(e);
+        }
     };
 
-    nuxeoModule.internal.init = () => {
-        if (nuxeoModule.internal.nuxeoClient) {
+    nuxeoModule.internal.init = async () => {
+        if (nuxeoModule.internal.nuxeoClient || nuxeoModule.internal.nuxeoConnectInProgress) {
             return;
         }
-
-        nuxeoModule.internal.initHomeConf();
-
-        useAuth2Authentication();
+        await useAuth2Authentication();
+        await nuxeoModule.internal.initHomeConf();
     };
 
     nuxeoModule.internal.requireUncached = (module) => {
@@ -92,9 +106,9 @@ module.exports = function (inTestMode) {
         return require(module)
     };
 
-    nuxeoModule.internal.$getNameWithStatus = () => {
+    nuxeoModule.internal.$getNameWithStatus = async () => {
 
-        nuxeoModule.internal.init();
+        await nuxeoModule.internal.init();
 
         return nuxeoModule.internal.nuxeoClient.connect()
             .then(function (client) {
@@ -124,13 +138,15 @@ module.exports = function (inTestMode) {
             ;
     };
 
-    nuxeoModule.internal.$readOneDoc = (doc) => {
+    nuxeoModule.internal.$readOneDoc = async (doc) => {
 
-        nuxeoModule.internal.init();
+        await nuxeoModule.internal.init();
 
         const beforeRequest = new Date();
 
-        let query = `SELECT * FROM Document WHERE uid = "${doc.uid}"`;
+        let query = `SELECT *
+                     FROM Document
+                     WHERE uid = "${doc.uid}"`;
         // console.log(query);
 
         return nuxeoModule.internal.nuxeoClient
@@ -149,9 +165,9 @@ module.exports = function (inTestMode) {
             });
     };
 
-    nuxeoModule.internal.$readQuery = (query) => {
+    nuxeoModule.internal.$readQuery = async (query) => {
 
-        nuxeoModule.internal.init();
+        await nuxeoModule.internal.init();
 
         const beforeRequest = new Date();
 
@@ -173,15 +189,15 @@ module.exports = function (inTestMode) {
             });
     };
 
-    nuxeoModule.internal.$readNXQL = (nxql) => {
-        nuxeoModule.internal.init();
+    nuxeoModule.internal.$readNXQL = async (nxql) => {
+        await nuxeoModule.internal.init();
 
         return nuxeoModule.internal.$readQuery({query: nxql, currentPageIndex: 0});
     };
 
-    nuxeoModule.internal.$readOperation = (op, input) => {
+    nuxeoModule.internal.$readOperation = async (op, input) => {
 
-        nuxeoModule.internal.init();
+        await nuxeoModule.internal.init();
 
         const beforeRequest = new Date();
 
@@ -209,9 +225,9 @@ module.exports = function (inTestMode) {
             });
     };
 
-    nuxeoModule.internal.$updateOneDoc = (doc) => {
+    nuxeoModule.internal.$updateOneDoc = async (doc) => {
 
-        nuxeoModule.internal.init();
+        await nuxeoModule.internal.init();
 
         const beforeRequest = new Date();
 
@@ -229,9 +245,9 @@ module.exports = function (inTestMode) {
             });
     };
 
-    nuxeoModule.internal.$createOneDoc = () => {
+    nuxeoModule.internal.$createOneDoc = async () => {
 
-        nuxeoModule.internal.init();
+        await nuxeoModule.internal.init();
 
         const beforeRequest = new Date();
         let afterRequest = beforeRequest;
@@ -282,7 +298,7 @@ module.exports = function (inTestMode) {
 
     };
 
-    nuxeoModule.internal.initHomeConf = () => {
+    nuxeoModule.internal.initHomeConf = async () => {
 
         try {
             const samplefilePath = path.join(__dirname, 'home.sample.json');
@@ -318,8 +334,8 @@ module.exports = function (inTestMode) {
         return conf;
     };
 
-    nuxeoModule.internal.$getBranding = () => {
-        nuxeoModule.internal.init();
+    nuxeoModule.internal.$getBranding = async () => {
+        await nuxeoModule.internal.init();
 
         let branding = nuxeoModule.internal.getHomeConf().brand;
 
@@ -383,8 +399,8 @@ module.exports = function (inTestMode) {
             //    return doc.fetchRendition('thumbnail');
             //}))
             //.then((res) => {
-                // in the browser, use res.blob() to work with the rendition
-                // in Node.js, use res.body
+            // in the browser, use res.blob() to work with the rendition
+            // in Node.js, use res.body
             //    return res.blob();
             //})
             .then((doc) => {
